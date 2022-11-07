@@ -1,0 +1,8 @@
+prefix=/home/cc/ee106a/fa22/class/ee106a-aca/ros_workspaces/lab2/install
+
+Name: my_chatter
+Description: Description of my_chatter
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: rospy std_msgs message_runtime
