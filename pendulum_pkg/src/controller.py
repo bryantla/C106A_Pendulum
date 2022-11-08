@@ -80,4 +80,8 @@ if __name__ == '__main__':
     # /controller.
     rospy.init_node('controller', anonymous=True)
 
-    listener()
+    # Check if the node has received a signal to shut down. If not, run the
+    # listener method.
+    try:
+        listener()
+    except rospy.ROSInterruptException: pass

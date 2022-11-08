@@ -49,4 +49,8 @@ if __name__ == '__main__':
     # /actuation.
     rospy.init_node('actuation', anonymous=True)
 
-    listener()
+    # Check if the node has received a signal to shut down. If not, run the
+    # listener method.
+    try:
+        listener()
+    except rospy.ROSInterruptException: pass
