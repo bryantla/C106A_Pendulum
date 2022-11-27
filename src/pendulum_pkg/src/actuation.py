@@ -9,6 +9,9 @@ import numpy as np
 import rospy
 from std_msgs.msg import Float64
 
+# TODO: need a ros package to command a linear acceleration from the control
+# input
+
 def listener():
     # Create a new instance of the rospy.Subscriber object which we can use to
     # receive messages of type std_msgs/Float64 from the topic /controller.

@@ -9,6 +9,10 @@ import numpy as np
 import rospy
 from std_msgs.msg import Float64
 
+# TODO: possibly need a ros package to read the current end effector position
+# and velocity, combine that with the pendulum angle and velocity, to get
+# the current state of the system and compute the error
+
 def listener():
     # Create a new instance of the rospy.Subscriber object which we can use to
     # receive messages of type std_msgs/Float64 from the topic /encoder.
