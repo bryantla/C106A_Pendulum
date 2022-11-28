@@ -34,6 +34,7 @@ class Actuation(object):
         self._listener_js = rospy.Subscriber("/robot/joint_states", JointState, self.get_js)
 
         # inverse kinematics
+        # you could compute these directly from q and w, like we did in Lab 3
         self._joint_twists = \ # twists of the joint axes
             np.array([[ s10, -c10, 0., -1.0155*c10, -1.0155*s10, -0.1603],
                       [-c10, -s10, 0., -0.9345*s10,  0.9345*c10,      0.],
