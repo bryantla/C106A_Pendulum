@@ -1,6 +1,9 @@
-# subscribe to encoder topic and get readings
-# use control law to determine required linear velocity of pendulum
+# subscribe to encoder and Sawyer arm topics and get readings
+# use control law to determine required linear velocity
 # publish command to topic
+
+# TODO: find controller gains that work for our specific system parameters
+# open the Mathematica notebooks to verify what was done previously
 
 #!/usr/bin/env python
 
@@ -16,12 +19,12 @@ class Controller(object):
 
     def __init__(self):
         # topic for end effector velocity, commanded velocity, end effector position
-        self._talker_yOut = rospy.Publisher("yOut",Point, queue_size=3)
+        self._talker_yOut = rospy.Publisher("yOut", Point, queue_size=3)
 
         # topics for encoder and end effector states
-        self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state",\
+        self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state", \
             EndpointState,self.cart)
-        self._listener_angle = rospy.Subscriber("encoder",Float32,self.angle)
+        self._listener_angle = rospy.Subscriber("encoder", Float32, self.angle)
 
         # state variables
         self._xInit = -0.208
@@ -32,6 +35,7 @@ class Controller(object):
         self._thetadot = 0
 
         # control variables
+        self._K = [0.5477,1.5090,30.1922,8.3422]
         self._cmd_vel = 0
         self._vel_limit = 1
         self._dt = 0.1 # 10 Hz (1/10)
@@ -40,15 +44,15 @@ class Controller(object):
     # computes commanded linear velocity of end effector given x, xdot, theta, thetadot
     def control_law(self,t):
         # control input (acceleration)
-        u = 0.5477*(self._x-self._xInit) + 1.5090*self._xdot + \
-            30.1922*self._theta + 8.3422*self._thetadot
+        u = self._K[0]*(self._x-self._xInit) + self._K[1]*self._xdot + \
+            self._K[2]*self._theta + self._K[3]*self._thetadot
 
         # command velocity, check for saturation
         self._cmd_vel = self._cmd_vel + u*self._dt
         if (np.abs(self._cmd_vel) > self._vel_limit):
             self._cmd_vel = np.sign(self._cmd_vel)*self._vel_limit
 
-        self._talker_yOut.publish(self._xdot,self._cmd_vel,self._x)
+        self._talker_yOut.publish(self._xdot, self._cmd_vel, self._x)
 
     # updates angle and angular velocity
     def angle(self,pub_angle):
