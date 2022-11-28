@@ -5,84 +5,63 @@
 #!/usr/bin/env python
 
 import numpy as np
+import time
 
 import rospy
-from std_msgs.msg import Float64
+from std_msgs.msg import Float32
+from intera_core_msgs.msg import EndpointState
+from geometry_msgs.msg import Point
 
-from collections import deque
-from intera_interface import Limb
-import intera_interface
-from moveit_msgs.msg import RobotTrajectory
+class Controller(object):
 
-# TODO: possibly need a ros package to read the current end effector position
-# and velocity, combine that with the pendulum angle and velocity, to get
-# the current state of the system and compute the error
+    def __init__(self):
+        # topic for end effector velocity, commanded velocity, end effector position
+        self._talker_yOut = rospy.Publisher("yOut",Point, queue_size=3)
 
-def listener():
-    # Create a new instance of the rospy.Subscriber object which we can use to
-    # receive messages of type std_msgs/Float64 from the topic /encoder.
-    # Whenever a new message is received, the method callback() will be called
-    # with the received message as its first argument.
-    rospy.Subscriber("encoder", Float64, control_law)
+        # topics for encoder and end effector states
+        self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state",\
+            EndpointState,self.cart)
+        self._listener_angle = rospy.Subscriber("encoder",Float32,self.angle)
 
-    # Wait for messages to arrive on the subscribed topics, and exit the node
-    # when it is killed with Ctrl+C
-    rospy.spin()
+        # state variables
+        self._xInit = -0.208
+        self._x = 0
+        self._xdot = 0
+        self._thetaPrev = 0
+        self._theta = 0
+        self._thetadot = 0
 
+        # control variables
+        self._cmd_vel = 0
+        self._vel_limit = 1
+        self._dt = 0.1 # 10 Hz (1/10)
+        self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
 
-def control_law(angle):
-    """
-    Computes the commanded linear velocity of end effector given the angle of
-    the pendulum.
+    # computes commanded linear velocity of end effector given x, xdot, theta, thetadot
+    def control_law(self,t):
+        # control input (acceleration)
+        u = 0.5477*(self._x-self._xInit) + 1.5090*self._xdot + \
+            30.1922*self._theta + 8.3422*self._thetadot
 
-    Parameters
-    ----------
-    angle (std_msgs.Float64): angle of pendulum
+        # command velocity, check for saturation
+        self._cmd_vel = self._cmd_vel + u*self._dt
+        if (np.abs(self._cmd_vel) > self._vel_limit):
+            self._cmd_vel = np.sign(self._cmd_vel)*self._vel_limit
 
-    Computes
-    -------
-    velocity (std_msgs.Float64): linear velocity along one axis of end effector
-    """
+        self._talker_yOut.publish(self._xdot,self._cmd_vel,self._x)
 
-    angle = angle.data
+    # updates angle and angular velocity
+    def angle(self,pub_angle):
+        self._thetaPrev = self._theta
+        self._theta = pub_angle.data
 
-    # # YOUR CODE HERE (Task 2)
-    # rospy.init_node('listener', anonymous=True)
-    # for i in range(len(angles)):
-    #     # joint_state.position: left joints correspond to indices 2 to 8
-    #     angles[i] = joint_state.position[2+i]
-    #
-    # # END YOUR CODE HERE
-    # print(baxter_forward_kinematics_from_angles(angles))
+        # angular velocity
+        self._thetadot = (self._theta-self._thetaPrev)/self._dt
 
-    talker(velocity)
-
-
-# publishes linear velocity to topic
-def talker(velocity):
-    # Create an instance of the rospy.Publisher object which we can use to
-    # publish messages to a topic. This publisher publishes messages of type
-    # std_msgs/Float64 to the topic /controller_vel
-    pub = rospy.Publisher('controller_vel', Float64, queue_size=10)
-
-    # Create a timer object that will sleep long enough to result in a 10 Hz
-    # publishing rate
-    r = rospy.Rate(10) # 10 Hz
-
-    # Loop until the node is killed with Ctrl-C
-    while not rospy.is_shutdown():
-        # Construct a string that we want to publish (in Python, the "%"
-        # operator functions similarly to sprintf in C or MATLAB)
-        pub_vel = Float64()
-        pub_vel.data = velocity
-
-        # Publish our message to the 'encoder_angle' topic
-        pub.publish(pub_vel)
-        print(pub_vel)
-
-        # Use our rate object to sleep until it is time to publish again
-        r.sleep()
-
+    # updates position and velocity of end effector
+    def cart(self,state):
+        self._x = state.pose.position.y # wrt base frame
+        self._xdot = state.twist.linear.x # wrt tool frame
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called
@@ -90,7 +69,10 @@ if __name__ == '__main__':
     rospy.init_node('controller', anonymous=True)
 
     # Check if the node has received a signal to shut down. If not, run the
-    # listener method.
+    # main loop.
     try:
-        listener()
-    except rospy.ROSInterruptException: pass
+        ctrllr = Controller()
+    except rospy.ROSInterruptException:
+        pass
+
+    rospy.spin()
