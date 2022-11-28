@@ -1,7 +1,9 @@
-# TO DO: https://lastminuteengineers.com/rotary-encoder-arduino-tutorial/
-# TO DO: https://www.youtube.com/watch?v=QE4IQlwOgiA&ab_channel=MakerTutor
+// TODO: https://lastminuteengineers.com/rotary-encoder-arduino-tutorial/
+// TODO: https://www.youtube.com/watch?v=QE4IQlwOgiA&ab_channel=MakerTutor
 
 volatile unsigned int temp, counter = 0; //This variable will increase or decrease depending on the rotation of encoder
+const int zeroPos = 0; // encoder reading when pendulum is vertical
+const float res = 1200;  // number of encoder ticks per revolution
     
 void setup() {
   Serial.begin (9600);
@@ -20,7 +22,8 @@ void setup() {
 void loop() {
   // Send the value of counter
   if( counter != temp ){
-    Serial.println (counter);
+//    Serial.println(counter);
+    Serial.println(encoderToAngle(counter));
     temp = counter;
   }
 }
@@ -43,4 +46,9 @@ void ai1() {
   } else {
     counter++;
   }
+}
+
+// converts encoder reading to angle (rad)
+float encoderToAngle(int enc) {
+  return fmod((enc-zeroPos)/res * 2*PI, 2*PI);
 }

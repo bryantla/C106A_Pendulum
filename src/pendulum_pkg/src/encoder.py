@@ -7,6 +7,7 @@
 # use "chmod +x [filename]" to make this script executable.
 
 import rospy
+import serial, time
 
 # import Float64 message type from std_msgs package
 from std_msgs.msg import Float64
@@ -17,10 +18,14 @@ from std_msgs.msg import Float64
 # make it go to the initial position and require user input to continue to the
 # while not rospy.is_shutdown() main loop once the user puts the pendulum in the
 # vertical/equilibrium position
-# TODO: import some ros packaage to read message from the serial port
 
 # publish angle to topic
 def talker():
+    # set up to read from serial port
+    # make sure the 'COM#' is set according the Windows Device Manager
+    ser = serial.Serial(port='COM4', baudrate=9800, timeout=1)
+    time.sleep(2)
+
     # Create an instance of the rospy.Publisher object which we can use to
     # publish messages to a topic. This publisher publishes messages of type
     # std_msgs/Float64 to the topic /encoder_angle
@@ -32,10 +37,11 @@ def talker():
 
     # Loop until the node is killed with Ctrl-C
     while not rospy.is_shutdown():
-        # Construct a string that we want to publish (in Python, the "%"
-        # operator functions similarly to sprintf in C or MATLAB)
+        # Construct a float that we want to publish
         pub_angle = Float64()
-        pub_angle.data = 0 #TODO: somehow read from Arduino/serial/USB to get angle
+        # read and convert byte to unicode string
+        angle = ser.readline().decode()
+        pub_angle.data = float(angle)
 
         # Publish our message to the 'encoder_angle' topic
         pub.publish(pub_angle)
@@ -43,6 +49,8 @@ def talker():
 
         # Use our rate object to sleep until it is time to publish again
         r.sleep()
+        
+    ser.close()
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called /encoder.
