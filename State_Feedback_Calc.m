@@ -40,6 +40,6 @@ K = K_
 % step response
 Ak = A - B*K;
 TF = tf(ss(Ak,B*K,C,0));
-TF1 = TF(1,1)
+TF2 = TF(2,1)
 figure
-step(TF1)
+step(TF2)

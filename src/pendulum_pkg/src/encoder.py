@@ -12,13 +12,6 @@ import serial
 # import Float32 message type from std_msgs package
 from std_msgs.msg import Float32
 
-# TODO: need to create a launch file to launch all of the node .py files
-# TODO: need a main.py file like in lab 6, which initializes the Sawyer arm in
-# the equivalent of some tucked position, with the gripper facing up (init node)
-# make it go to the initial position and require user input to continue to the
-# while not rospy.is_shutdown() main loop once the user puts the pendulum in the
-# vertical/equilibrium position
-
 # publish angle to topic
 def talker():
     # set up to read from serial port
