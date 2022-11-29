@@ -6,7 +6,7 @@ const int zeroPos = 0; // encoder reading when pendulum is vertical
 const float res = 1200;  // number of encoder ticks per revolution
     
 void setup() {
-  Serial.begin (9600);
+  Serial.begin(9600);
 
   pinMode(2, INPUT_PULLUP); // internal pullup input pin 2 
   

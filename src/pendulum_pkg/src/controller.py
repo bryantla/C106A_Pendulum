@@ -38,7 +38,7 @@ class Controller(object):
         self._K = [0.5477,1.5090,30.1922,8.3422]
         self._cmd_vel = 0
         self._vel_limit = 1
-        self._dt = 0.1 # 10 Hz (1/10)
+        self._dt = 0.01 # 100 Hz (1/100)
         self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
 
     # updates position and velocity of end effector

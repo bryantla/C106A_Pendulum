@@ -16,7 +16,7 @@ from std_msgs.msg import Float32
 def talker():
     # set up to read from serial port
     # make sure the 'COM#' is set according the Windows Device Manager
-    ser = serial.Serial(port='COM4', baudrate=9800, timeout=1)
+    ser = serial.Serial(port='COM4', baudrate=9600, timeout=1)
     # time.sleep(2)
 
     # Create an instance of the rospy.Publisher object which we can use to
@@ -26,7 +26,7 @@ def talker():
 
     # Create a timer object that will sleep long enough to result in a 10 Hz
     # publishing rate
-    r = rospy.Rate(10) # 10 Hz
+    r = rospy.Rate(100) # 100 Hz
 
     # Loop until the node is killed with Ctrl-C
     while not rospy.is_shutdown():
