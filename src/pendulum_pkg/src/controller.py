@@ -11,20 +11,19 @@ import numpy as np
 import time
 
 import rospy
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Float32MultiArray
 from intera_core_msgs.msg import EndpointState
-from geometry_msgs.msg import Point
 
 class Controller(object):
 
     def __init__(self):
-        # topic for end effector velocity, commanded velocity, end effector position
-        self._talker_yOut = rospy.Publisher("controller", Point, queue_size=3)
+        # topic for commanded velocity, end effector position, end effector velocity
+        self._talker_yOut = rospy.Publisher("controller", Float32MultiArray, queue_size=10)
 
         # topics for encoder and end effector states
         self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state", \
-            EndpointState,self.cart)
-        self._listener_angle = rospy.Subscriber("encoder", Float32, self.angle)
+            EndpointState, callback=self.cart)
+        self._listener_angle = rospy.Subscriber("encoder", Float32, callback=self.angle)
 
         # state variables
         self._xInit = -0.2075
@@ -65,7 +64,9 @@ class Controller(object):
         if (np.abs(self._cmd_vel) > self._vel_limit):
             self._cmd_vel = np.sign(self._cmd_vel)*self._vel_limit
 
-        self._talker_yOut.publish(self._xdot, self._cmd_vel, self._x)
+        send_data = Float32MultiArray()
+        send_data.data = [self._cmd_vel, self._x, self._xdot]
+        self._talker_yOut.publish(send_data)
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called

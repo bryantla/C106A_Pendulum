@@ -11,9 +11,8 @@ import time
 import rospy
 import intera_interface
 import modern_robotics as mr
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Float32MultiArray
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import Point
 
 # TODO: need to create a working launch file to launch all of the node .py files
 
@@ -31,8 +30,8 @@ class Actuation(object):
         self._limb.move_to_joint_positions(self._start_joint_angles)
 
         # topics for controller output and joint state
-        self._listener_yOut = rospy.Subscriber("controller", Point, self.get_y)
-        self._listener_js = rospy.Subscriber("/robot/joint_states", JointState, self.get_js)
+        self._listener_yOut = rospy.Subscriber("controller", Float32MultiArray, callback=self.get_y)
+        self._listener_js = rospy.Subscriber("/robot/joint_states", JointState, callback=self.get_js)
 
         # inverse kinematics
         # you could compute these directly from q and w, like we did in Lab 3
@@ -61,11 +60,11 @@ class Actuation(object):
         self._act_timer = rospy.Timer(rospy.Duration(1/100.), self.move)
         self._too_fast = True
 
-    # get end effector position, commanded velocity, end effector velocity from controller
+    # get commanded velocity, end effector position, end effector velocity from controller
     def get_y(self,yOut):
-        self._xdot = yOut.x
-        self._cmd_vel = yOut.y
-        self._x = yOut.z
+        self._cmd_vel = yOut.data[0]
+        self._x = yOut.data[1]
+        self._xdot = yOut.data[2]
 
     # get current joint positions
     def get_js(self,joint_state):
