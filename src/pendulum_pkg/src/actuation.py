@@ -10,6 +10,7 @@ import time
 
 import rospy
 import intera_interface
+import modern_robotics as mr
 from std_msgs.msg import Float32
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Point
