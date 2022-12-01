@@ -15,8 +15,8 @@ from std_msgs.msg import Float32
 # publish angle to topic
 def talker():
     # set up to read from serial port
-    # make sure the 'COM#' is set according the Windows Device Manager
-    ser = serial.Serial(port='COM4', baudrate=9600, timeout=1)
+    # make sure the port is set according the Windows Device Manager
+    ser = serial.Serial(port='/dev/ttyACM0', baudrate=9600, timeout=1)
     # time.sleep(2)
 
     # Create an instance of the rospy.Publisher object which we can use to
@@ -28,10 +28,16 @@ def talker():
     # publishing rate
     r = rospy.Rate(100) # 100 Hz
 
+    pub_angle_prev = 0
+
     # Loop until the node is killed with Ctrl-C
     while not rospy.is_shutdown():
         # Construct a float that we want to publish
-        pub_angle = float(ser.readline())
+        if ser.in_waiting:
+            pub_angle = float(ser.readline().decode())
+            pub_angle_prev = pub_angle
+        else:
+            pub_angle = pub_angle_prev
 
         # Publish our message to the 'encoder_angle' topic
         pub.publish(pub_angle)

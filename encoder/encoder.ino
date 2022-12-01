@@ -22,10 +22,10 @@ void setup() {
 void loop() {
   // Send the value of counter
   if( counter != temp ){
-//    Serial.println(counter);
     Serial.println(encoderToAngle(counter));
     temp = counter;
   }
+//  Serial.println(encoderToAngle(counter));
 }
    
 void ai0() {
