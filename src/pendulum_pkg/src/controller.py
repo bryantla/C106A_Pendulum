@@ -23,7 +23,7 @@ class Controller(object):
         # topics for encoder and end effector states
         self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state", \
             EndpointState, callback=self.cart)
-        self._listener_angle = rospy.Subscriber("encoder", Float32, callback=self.angle)
+        self._listener_angle = rospy.Subscriber("encoder_angle", Float32, callback=self.angle)
 
         # state variables
         self._xInit = -0.2075
@@ -66,6 +66,7 @@ class Controller(object):
 
         send_data = Float32MultiArray()
         send_data.data = [self._cmd_vel, self._x, self._xdot]
+        print(send_data.data)
         self._talker_yOut.publish(send_data)
 
 if __name__ == '__main__':

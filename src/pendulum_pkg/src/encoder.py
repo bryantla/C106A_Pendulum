@@ -1,4 +1,5 @@
 # read encoder counts from serial port
+# NOTE: DO NOT OPEN SERIAL MONITOR IN ARDUINO IDE AT THE SAME TIME AS THIS PYTHON SCRIPT IS RUNNING
 # publish encoder readings to topic
 
 #!/usr/bin/env python
