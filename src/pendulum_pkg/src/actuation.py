@@ -1,8 +1,8 @@
+#!/usr/bin/env python
+
 # subscribe to command topic
 # compute inverse kinematics for commanded linear velocity
 # send joint velocities to Sawyer
-
-#!/usr/bin/env python
 
 import numpy as np
 from math import pi,radians,sin,cos
@@ -38,19 +38,32 @@ class Actuation(object):
 
         # inverse kinematics
         # you could compute these directly from q and w, like we did in Lab 3
-        self._joint_twists = \
-            np.array([[ s10, -c10, 0., -1.0155*c10, -1.0155*s10, -0.1603],
-                      [-c10, -s10, 0., -0.9345*s10,  0.9345*c10,      0.],
-                      [  0.,   0., 1., -0.0322*s10,  0.0322*c10,      0.],
-                      [-c10, -s10, 0., -0.5345*s10,  0.5345*c10,      0.],
-                      [  0.,   0., 1.,  0.1363*s10, -0.1363*c10,      0.],
-                      [-c10, -s10, 0., -0.1345*s10,  0.1345*c10,      0.],
-                      [  0.,   0., 1.,          0.,          0.,      0.]]) # twists of the joint axes
-        self._joint_twists = self._joint_twists.T
-        self._g0 = np.array([[  0.,   0., 1., 1.0155], # initial SE(3) configuration of end effector
-                             [-c10, -s10, 0., 0.1603],
-                             [ s10, -c10, 0.,  0.317],
-                             [  0.,   0., 0.,     1.]])
+        self._joint_twists = np.array([[ 0.2584, -0.2783, -0.2761, -0.2317, -0.2273, -0.2269, -0.2202],
+                                     [-0.0642, -0.2736,  0.2749, -0.2206,  0.2261, -0.2093,  0.2191],
+                                     [ 0.0023,  0.2987, -0.1419,  0.6624, -0.141,   1.0374, -0.1409],
+                                     [-0.0059, -0.7077,  0.7065, -0.7077,  0.7065, -0.7077,  0.7065],
+                                     [ 0.0113,  0.7065,  0.7077,  0.7065,  0.7077,  0.7065,  0.7077],
+                                     [ 0.9999, -0.0122, -0.0038, -0.0122, -0.0038, -0.0122, -0.0038]])
+        # self._joint_twists = \
+        #     np.array([[ s10, -c10, 0., -1.0155*c10, -1.0155*s10, -0.1603],
+        #               [-c10, -s10, 0., -0.9345*s10,  0.9345*c10,      0.],
+        #               [  0.,   0., 1., -0.0322*s10,  0.0322*c10,      0.],
+        #               [-c10, -s10, 0., -0.5345*s10,  0.5345*c10,      0.],
+        #               [  0.,   0., 1.,  0.1363*s10, -0.1363*c10,      0.],
+        #               [-c10, -s10, 0., -0.1345*s10,  0.1345*c10,      0.],
+        #               [  0.,   0., 1.,          0.,          0.,      0.]]) # twists of the joint axes
+
+        # self._joint_twists = self._joint_twists.T
+        # g_st_init = np.array([[  0.,   0., 1., 1.0155], # initial SE(3) configuration of end effector
+        #                      [-c10, -s10, 0., 0.1603],
+        #                      [ s10, -c10, 0.,  0.317],
+        #                      [  0.,   0., 0.,     1.]])
+        R = np.array([[ 0.0076, 0.0001, -1.0000],
+              [-0.7040, 0.7102, -0.0053],
+              [ 0.7102, 0.7040,  0.0055]]).T # rotation matrix of zero config
+        self._g0 = np.eye(4)
+        self._g0[0:3,0:3] = R
+        self._g0[0:3,3] = np.array([0.7957, 0.9965, 0.3058])
         # find SE(3) configuration of end effector when moved to joint coordinates
         self._goal = mr.FKinBody(self._g0, self._joint_twists, self._angles)
         self._goal[0:3,0:3] = np.array([[0,-1,0],[1,0,0],[0,0,1]])
@@ -58,7 +71,7 @@ class Actuation(object):
 
         # controller variables
         self._cmd_vel = 0
-        self._x = -.2075
+        self._x = -0.2075
         self._xdot = 0
         self._count = 0
         self._act_timer = rospy.Timer(rospy.Duration(1/100.), self.move_arm)
@@ -92,10 +105,11 @@ class Actuation(object):
         # check for physical limits and update velocity
         if (self._x < .55 and self._x > -.7):
             Vb[3] = self._cmd_vel
+            Vb[0:6] = np.array([0.01,0,0,0,0,0])
         elif (self._x > .55 or self._x < -.7):
             self._too_fast = True
 
-        if (self._count < pi/2 and self._too_fast == True):
+        """if (self._count < pi/2 and self._too_fast == True):
             Vb[3] = self._xdot*cos(self._count) + Vb[3]*sin(self._count/4)
             self._count = self._count + .015
         elif (self._count >= pi/2 and self._count < 2*pi and self._too_fast == True):
@@ -103,7 +117,7 @@ class Actuation(object):
             self._count = self._count + .015
         elif (self._count >= 2*pi and self._too_fast == True):
             self._count = 0
-            self._too_fast = False
+            self._too_fast = False"""
 
 
         # calculate body Jacobian at current configuration
@@ -132,7 +146,6 @@ def initialize():
     limb.move_to_joint_positions(start_joint_angles)
 
     # wait for user input
-    time.sleep(2)
     input('Move pendulum to vertical equilibrium and press <Enter>:')
     print("Starting pendulum...")
 

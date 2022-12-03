@@ -1,11 +1,11 @@
+#!/usr/bin/env python
+
 # subscribe to encoder and Sawyer arm topics and get readings
 # use control law to determine required linear velocity
 # publish command to topic
 
 # TODO: find controller gains that work for our specific system parameters
 # open the Mathematica notebooks to verify what was done previously
-
-#!/usr/bin/env python
 
 import numpy as np
 import time
@@ -36,7 +36,7 @@ class Controller(object):
         # controller variables
         self._K = [0.5477,1.5090,30.1922,8.3422]
         self._cmd_vel = 0
-        self._vel_limit = 1
+        self._vel_limit = 0
         self._dt = 0.01 # 100 Hz (1/100)
         self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
 
