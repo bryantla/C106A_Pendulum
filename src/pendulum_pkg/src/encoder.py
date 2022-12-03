@@ -36,6 +36,7 @@ def talker():
         # Construct a float that we want to publish
         if ser.in_waiting:
             pub_angle = float(ser.readline().decode())
+            # negate this angle depending on direction
             pub_angle_prev = pub_angle
         else:
             pub_angle = pub_angle_prev

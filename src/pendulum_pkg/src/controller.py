@@ -34,9 +34,10 @@ class Controller(object):
         self._thetadot = 0
 
         # controller variables
+        # TO DO: CHANGE GAINS ON ANG VEL AND ANG, LQR THIS SHIT
         self._K = [0.5477,1.5090,30.1922,8.3422]
         self._cmd_vel = 0
-        self._vel_limit = 0
+        self._vel_limit = 1
         self._dt = 0.01 # 100 Hz (1/100)
         self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
 
@@ -49,6 +50,7 @@ class Controller(object):
     def angle(self,pub_angle):
         self._thetaPrev = self._theta
         self._theta = pub_angle.data
+        self._theta = self._theta + 0.75
 
         # angular velocity
         self._thetadot = (self._theta-self._thetaPrev)/self._dt

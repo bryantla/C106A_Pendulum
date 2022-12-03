@@ -3,6 +3,7 @@
 # subscribe to command topic
 # compute inverse kinematics for commanded linear velocity
 # send joint velocities to Sawyer
+# CANNOT COMPUTE INVERSE KINEMATICS USING THE LAB 3, SINCE THAT USED LEFT HAND PARAMETERS
 
 import numpy as np
 from math import pi,radians,sin,cos
@@ -14,8 +15,6 @@ from intera_interface import CHECK_VERSION
 import modern_robotics as mr
 from std_msgs.msg import Float32, Float32MultiArray
 from sensor_msgs.msg import JointState
-
-# TODO: need to create a working launch file to launch all of the node .py files
 
 class Actuation(object):
 
@@ -37,37 +36,24 @@ class Actuation(object):
         # self._listener_js = rospy.Subscriber("/robot/joint_states", JointState, callback=self.get_js)
 
         # inverse kinematics
-        # you could compute these directly from q and w, like we did in Lab 3
-        self._joint_twists = np.array([[ 0.2584, -0.2783, -0.2761, -0.2317, -0.2273, -0.2269, -0.2202],
-                                     [-0.0642, -0.2736,  0.2749, -0.2206,  0.2261, -0.2093,  0.2191],
-                                     [ 0.0023,  0.2987, -0.1419,  0.6624, -0.141,   1.0374, -0.1409],
-                                     [-0.0059, -0.7077,  0.7065, -0.7077,  0.7065, -0.7077,  0.7065],
-                                     [ 0.0113,  0.7065,  0.7077,  0.7065,  0.7077,  0.7065,  0.7077],
-                                     [ 0.9999, -0.0122, -0.0038, -0.0122, -0.0038, -0.0122, -0.0038]])
-        # self._joint_twists = \
-        #     np.array([[ s10, -c10, 0., -1.0155*c10, -1.0155*s10, -0.1603],
-        #               [-c10, -s10, 0., -0.9345*s10,  0.9345*c10,      0.],
-        #               [  0.,   0., 1., -0.0322*s10,  0.0322*c10,      0.],
-        #               [-c10, -s10, 0., -0.5345*s10,  0.5345*c10,      0.],
-        #               [  0.,   0., 1.,  0.1363*s10, -0.1363*c10,      0.],
-        #               [-c10, -s10, 0., -0.1345*s10,  0.1345*c10,      0.],
-        #               [  0.,   0., 1.,          0.,          0.,      0.]]) # twists of the joint axes
-
-        # self._joint_twists = self._joint_twists.T
-        # g_st_init = np.array([[  0.,   0., 1., 1.0155], # initial SE(3) configuration of end effector
-        #                      [-c10, -s10, 0., 0.1603],
-        #                      [ s10, -c10, 0.,  0.317],
-        #                      [  0.,   0., 0.,     1.]])
-        R = np.array([[ 0.0076, 0.0001, -1.0000],
-              [-0.7040, 0.7102, -0.0053],
-              [ 0.7102, 0.7040,  0.0055]]).T # rotation matrix of zero config
-        self._g0 = np.eye(4)
-        self._g0[0:3,0:3] = R
-        self._g0[0:3,3] = np.array([0.7957, 0.9965, 0.3058])
+        self._joint_twists = \
+            np.array([[ s10, -c10, 0., -1.0155*c10, -1.0155*s10, -0.1603],
+                      [-c10, -s10, 0., -0.9345*s10,  0.9345*c10,      0.],
+                      [  0.,   0., 1., -0.0322*s10,  0.0322*c10,      0.],
+                      [-c10, -s10, 0., -0.5345*s10,  0.5345*c10,      0.],
+                      [  0.,   0., 1.,  0.1363*s10, -0.1363*c10,      0.],
+                      [-c10, -s10, 0., -0.1345*s10,  0.1345*c10,      0.],
+                      [  0.,   0., 1.,          0.,          0.,      0.]]) # twists of the joint axes
+        self._joint_twists = self._joint_twists.T
+        self._g0 = np.array([[  0.,   0., 1., 1.0155], # initial SE(3) configuration of end effector
+                             [-c10, -s10, 0., 0.1603],
+                             [ s10, -c10, 0.,  0.317],
+                             [  0.,   0., 0.,     1.]])
         # find SE(3) configuration of end effector when moved to joint coordinates
         self._goal = mr.FKinBody(self._g0, self._joint_twists, self._angles)
         self._goal[0:3,0:3] = np.array([[0,-1,0],[1,0,0],[0,0,1]])
         self._js = []
+        self._Vb_prev = np.array([0,0,0,0,0,0])
 
         # controller variables
         self._cmd_vel = 0
@@ -100,12 +86,19 @@ class Actuation(object):
         # calculate transform from current to desired configuration: g(t)^-1 * gd
         trans = np.dot(mr.TransInv(mr.FKinBody(self._g0, self._joint_twists, js_curr)), g_d)
         # convert to desired twist (body velocity) by taking log
-        Vb = mr.se3ToVec(mr.MatrixLog6(trans))
+        # ignore jumps in velocity
+        Vb_temp = mr.se3ToVec(mr.MatrixLog6(trans))
+        if (np.linalg.norm(Vb_temp - self._Vb_prev) < 1):
+            self._Vb_prev = Vb_temp
+            Vb = Vb_temp
+        else:
+            Vb = self._Vb_prev
 
         # check for physical limits and update velocity
         if (self._x < .55 and self._x > -.7):
-            Vb[3] = self._cmd_vel
-            Vb[0:6] = np.array([0.01,0,0,0,0,0])
+            Vb[4] = self._cmd_vel*0.25
+            # Vb[0:6] = np.array([0,0,0,0,0,0])
+            # Vb = [vx, vy, vz, wx, wy, wz] = [+ away from wall/back of Sawyer, + right, + up, roll (x), pitch (y), yaw (z)]
         elif (self._x > .55 or self._x < -.7):
             self._too_fast = True
 
@@ -128,6 +121,7 @@ class Actuation(object):
                          "right_j3": qdot[3], "right_j4":qdot[4], "right_j5":qdot[5], "right_j6":qdot[6]}
         # move Sawyer arm
         self._limb.set_joint_velocities(joint_cmd)
+        # print(self._limb.endpoint_pose())
 
 # move Sawyer arm into initial configuration and wait for user input before proceeding
 def initialize():
@@ -141,13 +135,15 @@ def initialize():
         "right_j2":angles[2], "right_j3":angles[3], "right_j4":angles[4], \
         "right_j5":angles[5], "right_j6":angles[6]}
 
-    # move Sawyer arm
+    # move Sawyer arm at a slow velocity
     limb = intera_interface.Limb("right")
+    limb.set_joint_position_speed(0.3)
     limb.move_to_joint_positions(start_joint_angles)
 
     # wait for user input
     input('Move pendulum to vertical equilibrium and press <Enter>:')
     print("Starting pendulum...")
+    time.sleep(1)
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called
