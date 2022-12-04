@@ -34,7 +34,9 @@ class Controller(object):
         self._thetadot = 0
 
         # controller variables
-        self._K = [0.5477,1.5090,30.1922,8.3422]
+        # self._K = [0.5477,1.5090,30.1922,8.3422]
+        # self._K = [0.5477,1.4396,28.3598,5.7379] # L/2
+        self._K = [0.5477,1.5206,30.5069,8.8050] # mass at end, L
         self._cmd_vel = 0
         self._vel_limit = 1
         self._dt = 0.01 # 100 Hz (1/100)
@@ -50,7 +52,7 @@ class Controller(object):
     # updates angle and angular velocity
     def angle(self,pub_angle):
         self._thetaPrev = self._theta
-        self._theta = pub_angle.data + 0.01308997 # adjustment factor to compensate for lag, smooths out motion
+        self._theta = pub_angle.data # adjustment factor to compensate for lag, smooths out motion
 
         # angular velocity
         self._thetadot = (self._theta-self._thetaPrev)/self._dt
@@ -65,7 +67,6 @@ class Controller(object):
         # control input (acceleration)
         u = self._K[0]*(self._x-self._xInit) + self._K[1]*self._xdot + \
             self._K[2]*self._theta + self._K[3]*self._thetadot
-        u = 5.*self._theta
 
         # command velocity, check for saturation
         self._cmd_vel = self._cmd_vel + u*self._dt

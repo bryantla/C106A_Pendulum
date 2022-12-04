@@ -50,7 +50,8 @@ class Actuation(object):
                              [  0.,   0., 0.,     1.]])
         # find SE(3) configuration of end effector when moved to joint coordinates
         self._goal = mr.FKinBody(self._g0, self._joint_twists, self._angles)
-        self._goal[0:3,0:3] = np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        # self._goal[0:3,0:3] = np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        self._goal[0:3,0:3] = np.array([[-1,0,0],[0,-1,0],[0,0,1]])
         self._js = []
         self._Vb_prev = np.array([0,0,0,0,0,0])
 
@@ -97,20 +98,21 @@ class Actuation(object):
         if (self._x < .55 and self._x > -.7):
             Vb[4] = self._cmd_vel
             # note: looks like Vb is defined as [w, v] here
-            # note: maybe the coordinate system definitions change between uses?
-            # Vb = [vx, vy, vz, wx, wy, wz] = [+ right, + towards wall/back of Sawyer, + up, roll (x), pitch (y), yaw (z)]
+            # note: the coordinate system definitions seem to change each time the robot is run
+            # v = [vx, vy, vz] = [+ towards wall/back of Sawyer, + left, + up]
+            # w = [wx, wy, wz] = [roll (x), pitch (y), yaw (z)]
         elif (self._x > .55 or self._x < -.7):
             self._too_fast = True
 
-        """if (self._count < pi/2 and self._too_fast == True):
-            Vb[3] = self._xdot*cos(self._count) + Vb[3]*sin(self._count/4)
-            self._count = self._count + .015
-        elif (self._count >= pi/2 and self._count < 2*pi and self._too_fast == True):
-            Vb[3] =  Vb[3]*sin(self._count/4)
-            self._count = self._count + .015
-        elif (self._count >= 2*pi and self._too_fast == True):
-            self._count = 0
-            self._too_fast = False"""
+        # if (self._count < pi/2 and self._too_fast == True):
+        #     Vb[3] = self._xdot*cos(self._count) + Vb[3]*sin(self._count/4)
+        #     self._count = self._count + .015
+        # elif (self._count >= pi/2 and self._count < 2*pi and self._too_fast == True):
+        #     Vb[3] =  Vb[3]*sin(self._count/4)
+        #     self._count = self._count + .015
+        # elif (self._count >= 2*pi and self._too_fast == True):
+        #     self._count = 0
+        #     self._too_fast = False
 
 
         # calculate body Jacobian at current configuration
@@ -133,7 +135,7 @@ def initialize():
     rs.enable()
 
     # initial joint angles
-    angles = [0, 0, pi/2, -pi/2, pi/2, pi/2, pi/2+sin(radians(10))]
+    angles = [0, 0, pi/2, -pi/2, pi/2, pi/2, pi+sin(radians(10))]
     start_joint_angles = {"right_j0":angles[0], "right_j1":angles[1], \
         "right_j2":angles[2], "right_j3":angles[3], "right_j4":angles[4], \
         "right_j5":angles[5], "right_j6":angles[6]}
