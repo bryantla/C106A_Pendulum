@@ -35,16 +35,16 @@ vpa(simplify(Pdes))
 % state feedback, pole placement
 p = [-2+10*1i; -2-10*1i; -1.6+1.3*1i; -1.6-1.3*1i];
 K_ = place(A,B,p);
-K = K_
+K_sf = K_
 
 % LQR
 Q = C'*C;
 R = 1;
-[K,S,P] = lqr(A,B,Q,R)
+[K_lqr,S,P] = lqr(A,B,Q,R)
 
 % step response
-Ak = A - B*K;
-TF = tf(ss(Ak,B*K,C,0));
+Ak = A - B*K_lqr;
+TF = tf(ss(Ak,B*K_lqr,C,0));
 TF2 = TF(2,1);
 figure
 step(TF2)
