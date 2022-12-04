@@ -2,5 +2,5 @@
     <node pkg="intera_interface" type="enable_robot.py" name="enable_robot" args="-e" />
     <node name="encoder" pkg="pendulum_pkg" type="encoder.py"/>
     <node name="controller" pkg="pendulum_pkg" type="controller.py">  </node>
-    <node name="actuation" pkg="pendulum_pkg" type="actuation.py">  </node>
+    <node name="actuation" pkg="pendulum_pkg" type="actuation.py" output="screen">  </node>
 </launch>

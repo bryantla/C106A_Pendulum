@@ -4,7 +4,7 @@
 # use "chmod +x [filename]" to make this script executable.
 
 # read encoder counts from serial port
-# NOTE: DO NOT OPEN SERIAL MONITOR IN ARDUINO IDE AT THE SAME TIME AS THIS PYTHON SCRIPT IS RUNNING
+    # NOTE: DO NOT OPEN SERIAL MONITOR IN ARDUINO IDE AT THE SAME TIME AS THIS PYTHON SCRIPT IS RUNNING
 # publish encoder readings to topic
 
 import rospy

@@ -3,7 +3,7 @@
 # subscribe to command topic
 # compute inverse kinematics for commanded linear velocity
 # send joint velocities to Sawyer
-# CANNOT COMPUTE INVERSE KINEMATICS USING THE LAB 3, SINCE THAT USED LEFT HAND PARAMETERS
+    # CANNOT COMPUTE INVERSE KINEMATICS USING THE LAB 3, SINCE THAT USED LEFT HAND PARAMETERS
 
 import numpy as np
 from math import pi,radians,sin,cos
@@ -13,7 +13,7 @@ import rospy
 import intera_interface
 from intera_interface import CHECK_VERSION
 import modern_robotics as mr
-from std_msgs.msg import Float32, Float32MultiArray
+from std_msgs.msg import String, Float32, Float32MultiArray
 from sensor_msgs.msg import JointState
 
 class Actuation(object):
@@ -29,7 +29,6 @@ class Actuation(object):
         self._start_joint_angles = {"right_j0":self._angles[0], "right_j1":self._angles[1], \
             "right_j2":self._angles[2], "right_j3":self._angles[3], "right_j4":self._angles[4], \
             "right_j5":self._angles[5], "right_j6":self._angles[6]}
-        # self._limb.move_to_joint_positions(self._start_joint_angles)
 
         # topics for controller output and joint state
         # self._listener_yOut = rospy.Subscriber("controller", Float32MultiArray, callback=self.get_y)
@@ -96,9 +95,10 @@ class Actuation(object):
 
         # check for physical limits and update velocity
         if (self._x < .55 and self._x > -.7):
-            Vb[4] = self._cmd_vel*0.25
-            # Vb[0:6] = np.array([0,0,0,0,0,0])
-            # Vb = [vx, vy, vz, wx, wy, wz] = [+ away from wall/back of Sawyer, + right, + up, roll (x), pitch (y), yaw (z)]
+            Vb[4] = self._cmd_vel
+            # note: looks like Vb is defined as [w, v] here
+            # note: maybe the coordinate system definitions change between uses?
+            # Vb = [vx, vy, vz, wx, wy, wz] = [+ right, + towards wall/back of Sawyer, + up, roll (x), pitch (y), yaw (z)]
         elif (self._x > .55 or self._x < -.7):
             self._too_fast = True
 
@@ -125,6 +125,8 @@ class Actuation(object):
 
 # move Sawyer arm into initial configuration and wait for user input before proceeding
 def initialize():
+    reset = rospy.Publisher("reset_pendulum",String, queue_size=3)
+
     rs = intera_interface.RobotEnable(CHECK_VERSION)
     init_state = rs.state().enabled
     rs.enable()
@@ -143,7 +145,7 @@ def initialize():
     # wait for user input
     input('Move pendulum to vertical equilibrium and press <Enter>:')
     print("Starting pendulum...")
-    time.sleep(1)
+    reset.publish('reset')
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called
