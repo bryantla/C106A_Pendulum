@@ -103,6 +103,7 @@ class Actuation(object):
             # w = [wx, wy, wz] = [roll (x), pitch (y), yaw (z)]
         elif (self._x > .55 or self._x < -.7):
             self._too_fast = True
+            Vb = np.array([0,0,0,0,0,0]) # stop the arm completely
 
         # if (self._count < pi/2 and self._too_fast == True):
         #     Vb[3] = self._xdot*cos(self._count) + Vb[3]*sin(self._count/4)
@@ -144,6 +145,9 @@ def initialize():
     limb = intera_interface.Limb("right")
     limb.set_joint_position_speed(0.3)
     limb.move_to_joint_positions(start_joint_angles)
+    # limb.move_to_neutral()
+    # limb.move_to_joint_positions({"right_j0":0, "right_j1":0, \
+        "right_j2":0, "right_j3":0, "right_j4":0, "right_j5":0, "right_j6":0}
 
     # wait for user input
     input('Move pendulum to vertical equilibrium and press <Enter>:')
