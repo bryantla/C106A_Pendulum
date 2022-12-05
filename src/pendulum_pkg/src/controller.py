@@ -36,9 +36,9 @@ class Controller(object):
         # controller variables
         # self._K = [0.5477,1.5090,30.1922,8.3422]
         # self._K = [0.5477,1.4396,28.3598,5.7379] # L/2
-        self._K = [0.5477,1.5206,30.5069,8.8050] # mass at end, L
+        self._K = [0.5477*0.8,1.5206*0.8,30.5069*0.8,8.8050*0.8] # mass at end, L
         self._cmd_vel = 0
-        self._vel_limit = 1
+        self._vel_limit = 1.5
         self._dt = 0.01 # 100 Hz (1/100)
         self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
         # topic to reset the control input to zero

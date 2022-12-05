@@ -95,13 +95,14 @@ class Actuation(object):
             Vb = self._Vb_prev
 
         # check for physical limits and update velocity
-        if (self._x < .55 and self._x > -.7):
+        if (self._x < -.05 and self._x > -.35):
             Vb[4] = self._cmd_vel
+            print(self._x)
             # note: looks like Vb is defined as [w, v] here
             # note: the coordinate system definitions seem to change each time the robot is run
             # v = [vx, vy, vz] = [+ towards wall/back of Sawyer, + left, + up]
             # w = [wx, wy, wz] = [roll (x), pitch (y), yaw (z)]
-        elif (self._x > .55 or self._x < -.7):
+        elif (self._x > -.05 or self._x < -.35):
             self._too_fast = True
             Vb = np.array([0,0,0,0,0,0]) # stop the arm completely
 
@@ -145,9 +146,6 @@ def initialize():
     limb = intera_interface.Limb("right")
     limb.set_joint_position_speed(0.3)
     limb.move_to_joint_positions(start_joint_angles)
-    # limb.move_to_neutral()
-    # limb.move_to_joint_positions({"right_j0":0, "right_j1":0, \
-        "right_j2":0, "right_j3":0, "right_j4":0, "right_j5":0, "right_j6":0}
 
     # wait for user input
     input('Move pendulum to vertical equilibrium and press <Enter>:')
