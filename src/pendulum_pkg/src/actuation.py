@@ -61,7 +61,6 @@ class Actuation(object):
         self._xdot = 0
         self._count = 0
         self._act_timer = rospy.Timer(rospy.Duration(1/100.), self.move_arm)
-        self._too_fast = True
 
         # restructuring, so that callback functions aren't called before attributes are defined
         self._listener_yOut = rospy.Subscriber("controller", Float32MultiArray, callback=self.get_y)
@@ -95,27 +94,17 @@ class Actuation(object):
             Vb = self._Vb_prev
 
         # check for physical limits and update velocity
-        if (self._x < -.05 and self._x > -.35):
+        if (self._x < -.05 and self._x > -.55):
             Vb[4] = self._cmd_vel
+            Vb = np.array([0,0,0,0,self._cmd_vel,0])
             print(self._x)
             # note: looks like Vb is defined as [w, v] here
             # note: the coordinate system definitions seem to change each time the robot is run
             # v = [vx, vy, vz] = [+ towards wall/back of Sawyer, + left, + up]
             # w = [wx, wy, wz] = [roll (x), pitch (y), yaw (z)]
-        elif (self._x > -.05 or self._x < -.35):
+        elif (self._x > -.05 or self._x < -.55):
             self._too_fast = True
             Vb = np.array([0,0,0,0,0,0]) # stop the arm completely
-
-        # if (self._count < pi/2 and self._too_fast == True):
-        #     Vb[3] = self._xdot*cos(self._count) + Vb[3]*sin(self._count/4)
-        #     self._count = self._count + .015
-        # elif (self._count >= pi/2 and self._count < 2*pi and self._too_fast == True):
-        #     Vb[3] =  Vb[3]*sin(self._count/4)
-        #     self._count = self._count + .015
-        # elif (self._count >= 2*pi and self._too_fast == True):
-        #     self._count = 0
-        #     self._too_fast = False
-
 
         # calculate body Jacobian at current configuration
         Jb = mr.JacobianBody(self._joint_twists, js_curr)
