@@ -122,7 +122,7 @@ class Actuation(object):
 # move Sawyer arm into initial configuration and wait for user input before proceeding
 def initialize():
     # topic to reset the control input to zero
-    reset = rospy.Publisher("reset_pendulum",String, queue_size=3)
+    rezero = rospy.Publisher("rezero_pendulum",String, queue_size=3)
 
     rs = intera_interface.RobotEnable(CHECK_VERSION)
     init_state = rs.state().enabled
@@ -143,7 +143,7 @@ def initialize():
     input('Move pendulum to vertical equilibrium and press <Enter>:')
     print("Starting pendulum...")
     # request to reset the control input to zero before moving the arm
-    reset.publish('reset')
+    rezero.publish('rezero')
     limb.set_joint_position_speed(1.0)
 
 if __name__ == '__main__':

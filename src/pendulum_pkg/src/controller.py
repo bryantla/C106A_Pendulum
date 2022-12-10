@@ -40,7 +40,7 @@ class Controller(object):
         self._dt = 0.01 # 100 Hz (1/100)
         self._ctrl_timer = rospy.Timer(rospy.Duration(1/100.), self.control_law)
         # topic to reset the control input to zero
-        self._reset = rospy.Subscriber("reset_pendulum", String, callback=self.check_reset)
+        self._rezero = rospy.Subscriber("rezero_pendulum", String, callback=self.check_rezero)
 
     # updates position and velocity of end effector
     def endeff(self,state):
@@ -56,8 +56,8 @@ class Controller(object):
         self._thetadot = (self._theta-self._thetaPrev)/self._dt
 
     # check to see if the control input needs to be reset to zero
-    def check_reset(self,reset):
-        if (reset.data == 'reset'):
+    def check_rezero(self,rezero):
+        if (rezero.data == 'rezero'):
             self._cmd_vel = 0
 
     # computes commanded linear velocity of end effector given x, xdot, theta, thetadot
