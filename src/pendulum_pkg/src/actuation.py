@@ -11,7 +11,7 @@ import time
 import rospy
 import intera_interface
 from intera_interface import CHECK_VERSION
-import modern_robotics as mr
+import core as mr # Modern Robotics code library
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import JointState
 from intera_core_msgs.msg import EndpointState

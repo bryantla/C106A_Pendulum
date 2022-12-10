@@ -31,8 +31,6 @@ class Controller(object):
         self._thetadot = 0
 
         # controller variables
-        # self._K = [0.5477,1.5090,30.1922,8.3422]
-        # self._K = [0.5477,1.4396,28.3598,5.7379] # L/2
         self._K = [0.5477*0.65,1.3938*0.65,40.7981*0.65,9.8650*0.65] # moment inertia rod end
         # self._K = [0.5477*0.7,1.5206*0.7,30.5069*0.7,8.8050*0.7] # mass at end, L
         self._cmd_vel = 0
