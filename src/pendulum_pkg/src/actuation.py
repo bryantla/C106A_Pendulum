@@ -141,6 +141,7 @@ def initialize():
     print("Starting pendulum...")
     # request to reset the control input to zero before moving the arm
     reset.publish('reset')
+    limb.set_joint_position_speed(1.0)
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called
