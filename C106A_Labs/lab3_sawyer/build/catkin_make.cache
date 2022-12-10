@@ -1,2 +1,0 @@
-joint_ctrl
--DCATKIN_DEVEL_PREFIX=/home/cc/ee106a/fa22/class/ee106a-aca/ros_workspaces/lab3_sawyer/devel -DCMAKE_INSTALL_PREFIX=/home/cc/ee106a/fa22/class/ee106a-aca/ros_workspaces/lab3_sawyer/install -G Unix Makefiles

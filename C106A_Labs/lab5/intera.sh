@@ -1,1 +1,0 @@
-/opt/ros/eecsbot_ws/intera.sh
