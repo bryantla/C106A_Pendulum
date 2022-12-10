@@ -4,26 +4,22 @@
 # use control law to determine required linear velocity
 # publish command to topic
 
-# TODO: find controller gains that work for our specific system parameters
-# open the Mathematica notebooks to verify what was done previously
-
 import numpy as np
 import time
-from math import radians
 
 import rospy
-from std_msgs.msg import String, Float32, Float32MultiArray
+from std_msgs.msg import String, Float32
 from intera_core_msgs.msg import EndpointState
 
 class Controller(object):
 
     def __init__(self):
-        # topic for commanded velocity, end effector position, end effector velocity
-        self._talker_yOut = rospy.Publisher("controller", Float32MultiArray, queue_size=10)
+        # topic for commanded velocity
+        self._talker_uOut = rospy.Publisher("controller", Float32, queue_size=10)
 
         # topics for encoder and end effector states
         self._listener_xP = rospy.Subscriber("/robot/limb/right/endpoint_state", \
-            EndpointState, callback=self.cart)
+            EndpointState, callback=self.endeff)
         self._listener_angle = rospy.Subscriber("encoder_angle", Float32, callback=self.angle)
 
         # state variables
@@ -47,7 +43,7 @@ class Controller(object):
         self._reset = rospy.Subscriber("reset_pendulum", String, callback=self.check_reset)
 
     # updates position and velocity of end effector
-    def cart(self,state):
+    def endeff(self,state):
         self._x = state.pose.position.y # wrt base frame
         self._xdot = state.twist.linear.x # wrt tool frame
 
@@ -75,10 +71,8 @@ class Controller(object):
         if (np.abs(self._cmd_vel) > self._vel_limit):
             self._cmd_vel = np.sign(self._cmd_vel)*self._vel_limit
 
-        send_data = Float32MultiArray()
-        send_data.data = [self._cmd_vel, self._x, self._xdot]
-        print(['theta: ', self._theta, 'cmd_vel: ', send_data.data[0]])
-        self._talker_yOut.publish(send_data)
+        print(['theta: ', self._theta, 'cmd_vel: ', self._cmd_vel])
+        self._talker_uOut.publish(self._cmd_vel)
 
 if __name__ == '__main__':
     # Run this program as a new node in the ROS computation graph called
